@@ -1,10 +1,10 @@
-# Bikefinder — multi-source stolen bike monitor (Subito today, more sites later)
+# Bikefinder — multi-source stolen bike monitor
 
-Personal tool: runs configured search URLs (marketplaces are **pluggable**), compares listing photos against your reference photos with **Gemini Vision**, stores history in **PostgreSQL**, and sends **Telegram** alerts. **Subito.it** is the first built-in source.
+Personal tool: runs configured search URLs (marketplaces are **pluggable**), compares listing photos against your reference photos with **Gemini Vision**, stores history in **PostgreSQL**, and sends **Telegram** alerts. 
 
 ## Ethics
 
-- Use **slow**, **low-volume** checks (defaults are conservative). Respect [Subito.it](https://www.subito.it/) terms and `robots.txt`.
+- Use **slow**, **low-volume** checks (defaults are conservative).
 - This does **not** replace a police report or Subito’s abuse/stolen-goods reporting.
 
 ## Setup
