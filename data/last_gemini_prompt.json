@@ -1,0 +1,19 @@
+{
+  "endpoint": "vertex://global/project-7aa0e8b9-45cf-4342-924/models/gemini-3.1-flash-lite-preview:generateContent",
+  "payload": {
+    "contents": [
+      {
+        "role": "user",
+        "parts": [
+          {
+            "text": "<vertex-parts-omitted>"
+          }
+        ]
+      }
+    ],
+    "generationConfig": {
+      "temperature": 0.0,
+      "responseMimeType": "application/json"
+    }
+  }
+}

@@ -1,0 +1,197 @@
+# Copy to config/config.yaml and edit. Subito URLs: use saved searches for all Italy bikes.
+#
+# Pagination: `o` is a 1-based page index in Subito's UI (e.g. o=1 newest page, o=2 next page).
+# (~30 listings per page, but `o` increments by 1 per SERP page.)
+#
+# Subito: min/max price (EUR) appended to every search request as `ps` / `pe` (overrides URL if present).
+
+# Each search can set `source` (default: subito). Add new marketplaces as packages under src/bikefinder/sources/<id>/.
+# Windows Task Scheduler: one shared config + multiple tasks, e.g.
+#   bikefinder run --only-source subito
+#   bikefinder run --only-source wallapop
+#   bikefinder run --only-source ebay
+#   bikefinder run --only-source kleinanzeigen
+#   bikefinder run --only-source willhaben
+#   bikefinder run --only-source bolha
+#   bikefinder run --only-source njuskalo
+#   bikefinder run --only-source jofogas
+#   bikefinder run --only-source kupujemprodajem
+#   bikefinder run --only-source buycycle
+#   bikefinder run --only-source facebook
+# Use --only-search <exact name> to run a subset by YAML `name`.
+#
+# eBay (Browse API): set EBAY_CLIENT_ID and EBAY_CLIENT_SECRET in .env (Production keyset).
+# Optional: EBAY_OAUTH_SCOPE (default https://api.ebay.com/oauth/api_scope).
+# CHF band is for EBAY_CH only (~150–1200 EUR at ~0.94 EUR/CHF; tune ebay_price_min_chf / max_chf as you like).
+searches:
+  - name: italy_bikes_recent
+    source: subito
+    url: "https://www.subito.it/annunci-italia/vendita/biciclette/?order=datedesc&o=1"
+  # Wallapop v1 support is intentionally scoped to this exact URL pattern:
+  # - name: wallapop_bikes_200_1000_newest
+  #   source: wallapop
+  #   url: "https://it.wallapop.com/search?category_id=17000&min_sale_price=200&max_sale_price=1000&order_by=newest"
+  # - name: brand_query
+  #   source: subito
+  #   url: "https://www.subito.it/annunci-veneto/vendita/biciclette/?q=your+brand+model"
+  #
+  # Kleinanzeigen (DE): category URL only; price band from root kleinanzeigen_price_*_eur (path preis:min:max).
+  # Default SERP sort is newest (Neueste). Category c217 is Fahrräder & Zubehör.
+  # - name: kleinanzeigen_bikes_de
+  #   source: kleinanzeigen
+  #   url: "https://www.kleinanzeigen.de/s-fahrraeder/c217"
+  #
+  # willhaben (AT): Marktplatz category URL; price band from root willhaben_price_*_eur (PRICE_FROM / PRICE_TO).
+  # Sort ``sort=1`` = Aktualität (newest). Other query params on the URL are preserved.
+  # - name: willhaben_bikes_at_150_1200
+  #   source: willhaben
+  #   url: "https://www.willhaben.at/iad/kaufen-und-verkaufen/marktplatz/fahrraeder-4552?topicId=1001"
+  #
+  # buycycle (IT shop): category URL with ``sort-by/new`` (newest). Price band from root buycycle_price_*_eur
+  # (path ``min-price`` / ``max-price`` inserted before ``sort-by``). Requires Playwright (see use_playwright).
+  # - name: buycycle_it_bikes_new_150_1200
+  #   source: buycycle
+  #   url: "https://buycycle.com/it-it/shop/main-types/bikes/sort-by/new"
+  #
+  # Facebook Marketplace: paste the search URL from your browser (www.facebook.com, /marketplace/...).
+  # If the path is ``/marketplace/np/<id>/search``, the URL is used **verbatim** (put minPrice/maxPrice in the string;
+  # YAML ``facebook_price_*_eur`` does not apply). Otherwise ``facebook_price_*_eur`` merges price + default sort.
+  # Avoid ``daysSinceListed=1`` (etc.) unless you want very few listings — that filter caps results in the URL itself.
+  # Playwright required. Optional: FACEBOOK_STORAGE_STATE_PATH → Playwright storage_state.json after login.
+  # - name: facebook_bikes_padova_500km
+  #   source: facebook
+  #   url: "https://www.facebook.com/marketplace/np/110539155637396/search?minPrice=150&maxPrice=1200&query=bici&radius=500&exact=false"
+  #
+  # Njuskalo (HR): category SERP; price band from root njuskalo_price_*_eur (query ``price[min]`` / ``price[max]``).
+  # - name: njuskalo_bicikli_150_1200
+  #   source: njuskalo
+  #   url: "https://www.njuskalo.hr/bicikli?price%5Bmin%5D=150&price%5Bmax%5D=1200&page=1"
+  #
+  # Jófogás (HU): use ``kerekparok-es-alkatreszek`` (bicycles & parts), not ``szabadido-sport``. ``f=p`` = private seller,
+  # ``sp=3`` = newest first; root jofogas_price_*_eur × jofogas_huf_per_eur → ``min_price`` / ``max_price`` (HUF).
+  # - name: jofogas_kerekparok_150_1200
+  #   source: jofogas
+  #   url: "https://www.jofogas.hu/magyarorszag/kerekparok-es-alkatreszek?f=p&sp=3&o=1"
+  #
+  # KupujemProdajem (RS): category path URL; ``page`` + ``priceFrom`` / ``priceTo`` / ``hasPrice=yes`` from root kupujemprodajem_price_*_eur.
+  # - name: kp_drumski_trkacki_150_1200
+  #   source: kupujemprodajem
+  #   url: "https://www.kupujemprodajem.com/bicikli/drumski-trkacki/grupa/912/919/2?categoryId=912&order=posted%20desc&page=1"
+  #
+  # - name: ebay_bikes_it_at_ch_si_hr
+  #   source: ebay
+  #   url: ""
+  #   ebay_marketplace_ids: ["EBAY_IT", "EBAY_AT", "EBAY_DE", "EBAY_CH"]
+  #   # Browse Buy API: EBAY_HU not supported; use HU in ebay_location_countries.
+  #   ebay_location_countries: ["SI", "HR", "HU", "RS", "AL", "ME", "BA"]
+  #   ebay_location_hub_marketplace_id: "EBAY_IT"
+  #   # Keywords: omit ebay_query → uses ebay_default_query in YAML root. For category-only (no `q`):
+  #   # ebay_query: ""
+  #   # (needs ebay_category_ids or root ebay_default_category_ids — whole bikes default 177831)
+  #   # ebay_query: "(bicycle, bicicletta)"
+  #   # Include auctions (API defaults to Buy It Now–friendly results only):
+  #   # ebay_buying_options: "AUCTION|FIXED_PRICE"
+
+# How many result pages/chunks per search per run. Subito: ~30 ads/page (o=1,2,…).
+# Wallapop+Playwright: load-more chunks on the same search URL (no ?page= in the browser).
+# buycycle+Playwright: pagination uses ``.../page/2``… path suffix on the built URL; listings load after Cookiebot + scroll.
+# Keep moderate to be polite.
+max_pages_per_search: 2
+
+# Optional: one-shot fresh-fill drain of the newest SERP window (non-watch).
+# Applies to `bikefinder run` and `bikefinder crawl` (OR with CLI `--backfill`).
+# Stops when it reaches the date frontier: first listing with `posted_at < min_listing_date`.
+# backfill: false
+
+# Delay between HTTP requests (seconds)
+delay_seconds: 2.0
+
+# Subito only: EUR price band for `ps` / `pe` on every fetch (default 100–2000)
+subito_price_min_eur: 100
+subito_price_max_eur: 2000
+
+# Kleinanzeigen only: EUR band for path ``preis:min:max`` on every fetch (default 150–1200).
+kleinanzeigen_price_min_eur: 150
+kleinanzeigen_price_max_eur: 1200
+
+# willhaben only: EUR band for query ``PRICE_FROM`` / ``PRICE_TO`` on every fetch (default 150–1200).
+willhaben_price_min_eur: 150
+willhaben_price_max_eur: 1200
+
+# bolha only: EUR band for query ``price[min]`` / ``price[max]`` on every fetch (default 150–1200).
+bolha_price_min_eur: 150
+bolha_price_max_eur: 1200
+
+# njuskalo only: EUR band for query ``price[min]`` / ``price[max]`` on every fetch (default 150–1200).
+njuskalo_price_min_eur: 150
+njuskalo_price_max_eur: 1200
+
+# jofogas.hu only: EUR band converted to HUF (× jofogas_huf_per_eur, default 400) for ``min_price`` / ``max_price``.
+jofogas_price_min_eur: 150
+jofogas_price_max_eur: 1200
+jofogas_huf_per_eur: 400
+
+# kupujemprodajem.com only: EUR band for ``priceFrom`` / ``priceTo`` + ``hasPrice=yes`` on every fetch (default 150–1200).
+kupujemprodajem_price_min_eur: 150
+kupujemprodajem_price_max_eur: 1200
+
+# buycycle only: EUR band for path ``min-price`` / ``max-price`` on every fetch (default 150–1200).
+buycycle_price_min_eur: 150
+buycycle_price_max_eur: 1200
+
+# Facebook Marketplace only: EUR band for query ``minPrice`` / ``maxPrice`` on every fetch (default 150–1200).
+facebook_price_min_eur: 150
+facebook_price_max_eur: 1200
+# Facebook only: infinite-scroll tuning (optional). Higher cap / stale rounds = deeper SERP before stop.
+# facebook_scroll_rounds_cap: 120
+# facebook_stale_rounds: 10
+# facebook_min_scroll_rounds: 8
+
+# eBay Browse API defaults (EUR for all marketplaces except CH; CH uses CHF below)
+ebay_price_min_eur: 150
+ebay_price_max_eur: 1200
+ebay_price_min_chf: 140
+ebay_price_max_chf: 1130
+# ebay_default_query: "(bicycle, bicicletta, bici, fahrrad)"
+# ebay_default_marketplace_ids: ["EBAY_IT", "EBAY_AT", "EBAY_CH"]
+# Whole bicycles on IT/AT/CH (Biciclette / Fahrräder). Set to "" to disable category filter.
+# ebay_default_category_ids: "177831"
+
+# Paths to your reference photos (project-relative or absolute), e.g.:
+# reference_images:
+#   - assets/reference/bike1.jpg
+reference_images: []
+
+# Gemini compares these images to each listing’s photos.
+# Gemini model for image comparison (best quality default)
+gemini_model: gemini-2.5-pro
+# Vertex AI runtime for Gemini (auth via gcloud ADC / Application Default Credentials).
+# You can set these here or in .env as VERTEX_PROJECT_ID / VERTEX_LOCATION / VERTEX_GCS_BUCKET.
+vertex_project_id: "project-7aa0e8b9-45cf-4342-924"
+vertex_location: "global"
+vertex_gcs_bucket: "your-existing-bucket"
+gemini_threshold: 0.72
+# Optional: second Telegram bot (set TELEGRAM_HIGH_CONFIDENCE_BOT_TOKEN + TELEGRAM_HIGH_CONFIDENCE_CHAT_ID in .env).
+# Alert when score > high_confidence_score_gt OR (title contains high_confidence_title_substring and score > high_confidence_title_min_score).
+# high_confidence_score_gt: 0.90
+# high_confidence_title_substring: "kross"
+# high_confidence_title_min_score: 0.6
+max_listing_images_for_gemini: 8
+gemini_timeout_seconds: 90
+# Retries after timeout on generateContent; each retry also lengthens the HTTP timeout (1.5x per step, cap 300s).
+gemini_generate_retries: 3
+
+# Consider only listings with `posted_at >= min_listing_date`.
+# Supported formats: YYYY-MM-DD or DD.MM.YYYY
+min_listing_date: "18.03.2026"
+
+# PostgreSQL — required. Prefer DATABASE_URL in .env; optional database_url here (env wins if both set).
+# database_url: "postgresql://USER:PASSWORD@localhost:5432/bikefinder"
+
+# HTTP
+user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+request_timeout_seconds: 30.0
+
+# Optional: use Playwright instead of httpx (install: pip install .[playwright] && playwright install chromium).
+# buycycle and facebook sources use Playwright for SERP fetch (facebook has no plain-HTTP path).
+use_playwright: true

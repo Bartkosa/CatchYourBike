@@ -1,0 +1,20 @@
+# Quick sanity run: unlikely query + future cutoff => usually zero Gemini calls.
+# Needs .env: VERTEX_PROJECT_ID, VERTEX_LOCATION, VERTEX_GCS_BUCKET, TELEGRAM_*, DATABASE_URL (real Postgres URL).
+#   bikefinder run --dry-run --config tests/fixtures/smoke_config.yaml
+searches:
+  - name: smoke
+    source: subito
+    url: "https://www.subito.it/annunci-veneto/vendita/biciclette/?q=xyzunlikely12345"
+max_pages_per_search: 1
+delay_seconds: 0.5
+reference_images:
+  - tests/fixtures/smoke_ref.png
+gemini_model: gemini-2.5-pro
+gemini_threshold: 0.99
+max_listing_images_for_gemini: 8
+gemini_timeout_seconds: 90
+gemini_generate_retries: 3
+min_listing_date: "2099-01-01"
+user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"
+request_timeout_seconds: 45.0
+use_playwright: false
